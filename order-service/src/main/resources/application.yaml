@@ -1,0 +1,27 @@
+server:
+  port: 6633
+  servlet:
+    context-path: /order
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: "jdbc:mysql://localhost:3306/order_service"
+    driverClassName: "com.mysql.cj.jdbc.Driver"
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+app:
+  services:
+    product: http://localhost:6677/product
+    profile: http://localhost:6366/profile
