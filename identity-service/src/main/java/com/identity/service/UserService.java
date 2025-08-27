@@ -3,9 +3,12 @@ package com.identity.service;
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.event.dto.NotificationEvent;
+import com.identity.dto.response.EmailVerificationResponse;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,7 +46,8 @@ public class UserService {
     PasswordEncoder passwordEncoder;
     ProfileClient profileClient;
     KafkaTemplate<String, Object> kafkaTemplate;
-
+    StringRedisTemplate stringRedisTemplate;
+    SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public UserResponse createUser(UserCreationRequest request) {
         User user = userMapper.toUser(request);
@@ -66,13 +70,14 @@ public class UserService {
 
         var profile = profileClient.createProfile(profileRequest);
 
-        String verifyCode = generateVerificationCode();
+        String verifyCode = generateVerificationCode(request.getEmail());
 
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .channel("EMAIL")
                 .recipient(request.getEmail())
                 .subject("Welcome to Born Hub")
-                .body("Hello, " + request.getUsername() + ". Your verification code is: " + verifyCode)
+                .body("Hello, " + request.getUsername() + ". Your verification code is: " + verifyCode
+                        + ". Please verify your email to continue exploring BornHub!")
                 .build();
 
         kafkaTemplate.send("notification-delivery", notificationEvent);
@@ -83,11 +88,46 @@ public class UserService {
         return userCreationResponse;
     }
 
-    private String generateVerificationCode() {
-        SecureRandom random = new SecureRandom();
-        int code = 100000 + random.nextInt(900000);
+    private String generateVerificationCode(String email) {
+        try {
+            String code = String.valueOf (100000 + SECURE_RANDOM.nextInt(900000));
+            String key = "verify" + email;
 
-        return String.valueOf(code);
+            stringRedisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+            return code;
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.CANNOT_CREATE_OTP);
+        }
+    }
+
+    public EmailVerificationResponse verifyCode(String email, String code) {
+        String key = "verify" + email;
+        String storedCode = stringRedisTemplate.opsForValue().get(key);
+
+        if (storedCode != null && storedCode.equals(code)) {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            user.setEmailVerified(true);
+            userRepository.save(user);
+            stringRedisTemplate.delete(key);
+
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                    .channel("EMAIL")
+                    .recipient(user.getEmail())
+                    .subject("Email Verified Successfully")
+                    .body("Hello, " + user.getUsername() + ". Your email has been verified successfully.")
+                    .build();
+
+            kafkaTemplate.send("email-verification-delivery", notificationEvent);
+
+            return EmailVerificationResponse.builder()
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .emailVerified(user.isEmailVerified())
+                    .build();
+        } else {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
     }
 
     public UserResponse getMyInfo() {

@@ -2,6 +2,8 @@ package com.identity.controller;
 
 import java.util.List;
 
+import com.identity.dto.request.EmailVerificationRequest;
+import com.identity.dto.response.EmailVerificationResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,14 @@ public class UserController {
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
+                .build();
+    }
+
+    @PostMapping("/verify")
+    ApiResponse<EmailVerificationResponse> verifyEmail(@RequestBody EmailVerificationRequest request) {
+        EmailVerificationResponse response = userService.verifyCode(request.getEmail(), request.getCode());
+        return ApiResponse.<EmailVerificationResponse>builder()
+                .result(response)
                 .build();
     }
 

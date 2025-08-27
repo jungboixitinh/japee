@@ -1,0 +1,15 @@
+server:
+  port: 6368
+  servlet:
+    context-path: /cart
+spring:
+  application:
+    name: cart-service
+  data:
+    mongodb:
+      uri: mongodb://root:root@localhost:27017/cart-service?authSource=admin
+
+app:
+  services:
+    product: http://localhost:6677/product
+    order: http://localhost:6633/order

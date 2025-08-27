@@ -21,8 +21,8 @@ public class NotificationController {
     EmailService emailService;
 
     @KafkaListener(topics = "notification-delivery")
-    public void listenNotificationDelivery(NotificationEvent message){
-        log.info("Message received: {}", message);
+    public void listenNotificationDelivery(NotificationEvent message) {
+
         emailService.sendEmail(SendEmailRequest.builder()
                         .to(Recipient.builder()
                                 .email(message.getRecipient())
@@ -32,4 +32,15 @@ public class NotificationController {
                 .build());
     }
 
+    @KafkaListener(topics = "email-verification-delivery")
+    public void listenEmailVerificationDelivery(NotificationEvent message) {
+
+        emailService.sendEmail(SendEmailRequest.builder()
+                .to(Recipient.builder()
+                        .email(message.getRecipient())
+                        .build())
+                .subject(message.getSubject())
+                .htmlContent(message.getBody())
+                .build());
+    }
 }

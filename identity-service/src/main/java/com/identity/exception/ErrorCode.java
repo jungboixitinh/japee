@@ -19,7 +19,9 @@ public enum ErrorCode {
     INVALID_EMAIL(1009, "Invalid email address", HttpStatus.BAD_REQUEST),
     EMAIL_IS_REQUIRED(1009, "Email is required", HttpStatus.BAD_REQUEST),
     OTP_EXPIRED(6969,"OTP expired" ,HttpStatus.BAD_REQUEST),
-    INVALID_OTP(9696,"Invalid OTP", HttpStatus.BAD_REQUEST),;
+    INVALID_OTP(9696,"Invalid OTP", HttpStatus.BAD_REQUEST),
+    CANNOT_CREATE_OTP(1010, "Cannot create OTP", HttpStatus.SERVICE_UNAVAILABLE),
+    ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
