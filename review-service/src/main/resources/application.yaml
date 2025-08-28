@@ -1,0 +1,15 @@
+server:
+  port: 6663
+  servlet:
+    context-path: /review
+spring:
+  application:
+    name: review-service
+  data:
+    mongodb:
+      uri: mongodb://root:root@localhost:27017/review-service?authSource=admin
+
+app:
+  services:
+    profile: http://localhost:6366/profile
+    product: http://localhost:6677/product

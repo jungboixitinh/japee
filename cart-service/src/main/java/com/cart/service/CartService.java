@@ -31,7 +31,7 @@ public class CartService {
     ProductClient productClient;
     OrderClient orderClient;
 
-    public CartResponse addToCart (CartRequest request){
+    public CartResponse addToCart (CartRequest request) {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> Cart.builder()

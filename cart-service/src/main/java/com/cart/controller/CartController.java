@@ -40,7 +40,7 @@ public class CartController {
                 .build();
     }
 
-    @PostMapping("order")
+    @PostMapping("/order")
     ApiResponse<OrderResponse> placeOrder() {
         return ApiResponse.<OrderResponse>builder()
                 .result(cartService.placeOrder())

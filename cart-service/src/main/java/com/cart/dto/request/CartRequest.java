@@ -1,6 +1,5 @@
 package com.cart.dto.request;
 
-import com.cart.entity.CartItem;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
